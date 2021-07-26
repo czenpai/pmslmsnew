@@ -1,23 +1,27 @@
-import logo from './logo.svg';
-import './App.css';
-
+import Login from "./components/auth/Login";
+import AdminPanel from "./roles/admin/AdminPanel";
+import StudentPanel from "./roles/student/StudentPanel";
+import TrainerPanel from "./roles/trainer/TrainerPanel";
+import { isAuth } from "./actions/auth";
+import AuthContext from "./store/auth-context";
+import { useContext } from "react";
 function App() {
+  const authCtx = useContext(AuthContext);
+  const isLoggedIn = authCtx.isLoggedIn;
+  const role = authCtx.user?.role;
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {isLoggedIn ? (
+        role == 1 ? (
+          <AdminPanel />
+        ) : role == 2 ? (
+          <TrainerPanel />
+        ) : (
+          <StudentPanel />
+        )
+      ) : (
+        <Login />
+      )}
     </div>
   );
 }
