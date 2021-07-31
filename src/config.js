@@ -8,4 +8,4 @@ export const DOMAIN = process.env.REACT_APP_PRODUCTION
 
 // export const FB_APP_ID = env.FB_APP_ID;
 // export const DISQUS_SHORTNAME = env.DISQUS_SHORTNAME;
-// export const GOOGLE_CLIENT_ID = env.GOOGLE_CLIENT_ID;
+export const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;

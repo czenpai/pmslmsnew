@@ -27,8 +27,8 @@ import AuthContext from "../../store/auth-context";
 import { useContext } from "react";
 function Login(props) {
   const [values, setValues] = useState({
-    email: "",
-    password: "",
+    email: "dinuga@gmail.com",
+    password: "rrrrrr",
     error: "",
     loading: false,
     message: "",
@@ -55,6 +55,7 @@ function Login(props) {
       if (data?.error) {
         setValues({ ...values, error: data.error, loading: false });
       } else {
+        console.log(data);
         // save user token to cookie
         // save user info to localstorage
         // authenticate user

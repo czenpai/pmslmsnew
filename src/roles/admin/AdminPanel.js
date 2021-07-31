@@ -1,5 +1,12 @@
 import React from "react";
-import { FaBook, FaMeteor, FaPeopleCarry, FaUser } from "react-icons/fa";
+import {
+  FaBook,
+  FaMeteor,
+  FaPeopleCarry,
+  FaRocket,
+  FaUser,
+  FaUserAstronaut,
+} from "react-icons/fa";
 import Navigation from "../../components/navigation/Navigation";
 import {
   BrowserRouter as Router,
@@ -9,9 +16,7 @@ import {
 } from "react-router-dom";
 import AdminDashBoard from "./pages/dashboard/AdminDashBoard";
 import StudentManagement from "./pages/usermanagement/StudentManagement";
-import TrainerManagement from "./pages/usermanagement/TrainerManagement";
-import ViewBatches from "./pages/batchmanagement/ViewBatches";
-import CreateBatch from "./pages/batchmanagement/CreateBatch";
+import ViewBatches from "./pages/batchmanagement/BatchMangement";
 import CourseManagement from "./pages/courses/CourseManagement";
 
 const AdminPanel = () => {
@@ -26,28 +31,15 @@ const AdminPanel = () => {
     {
       route: "/user-management",
       title: "User Management",
-      subroutes: [
-        { route: "/student", title: "Student", page: <StudentManagement /> },
-        { route: "/trainer", title: "Trainer", page: <TrainerManagement /> },
-      ],
-
+      page: <StudentManagement />,
+      subroutes: [],
       icon: FaUser,
     },
     {
       route: "/batch-management",
       title: "Batch Management",
-      subroutes: [
-        {
-          route: "/view-batches",
-          title: "View Batches",
-          page: <ViewBatches />,
-        },
-        {
-          route: "/create-batch",
-          title: "Create Batch",
-          page: <CreateBatch />,
-        },
-      ],
+      page: <ViewBatches />,
+      subroutes: [],
       icon: FaPeopleCarry,
     },
     {
@@ -57,6 +49,20 @@ const AdminPanel = () => {
       icon: FaBook,
       page: <CourseManagement />,
     },
+    // {
+    //   route: "/marketing",
+    //   title: "Marketing",
+    //   subroutes: [],
+    //   icon: FaRocket,
+    //   page: <CourseManagement />,
+    // },
+    // {
+    //   route: "/profile",
+    //   title: "My Profile",
+    //   subroutes: [],
+    //   icon: FaUserAstronaut,
+    //   page: <CourseManagement />,
+    // },
   ];
   const generateRouting = (routes) => {
     return routes.map((r) => {

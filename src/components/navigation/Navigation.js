@@ -34,7 +34,7 @@ const Navigation = ({ children, sidebarcontent, defaultBar }) => {
         </DrawerContent>
       </Drawer>
       {/* mobilenav */}
-      <MobileNav onOpen={onOpen} />
+      {/* <MobileNav onOpen={onOpen} /> */}
       <Box ml={{ base: 0, md: 60 }} p="4">
         {children}
       </Box>

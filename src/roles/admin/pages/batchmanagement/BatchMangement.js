@@ -30,23 +30,31 @@ import {
   Grid,
   GridItem,
 } from "@chakra-ui/react";
-
+import { Checkbox, CheckboxGroup } from "@chakra-ui/react";
 import React, { useState, useEffect } from "react";
 import { FaPlus } from "react-icons/fa";
-import { createUser, getUsers } from "../../../../actions/user";
+import {
+  createBatch,
+  createCalender,
+  getBatches,
+} from "../../../../actions/batch";
 import UserSearch from "../../../../components/search/UserSearch";
 
 import { useContext } from "react";
 import AuthContext from "../../../../store/auth-context";
 import UserCard from "../../../../components/card/UserCard";
 import { getCookie } from "../../../../actions/auth";
+import { listCourseCards } from "../../../../actions/course";
 
-const StudentManagement = () => {
+const BatchManagement = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [users, setUsers] = useState([]);
-  const [usersSearch, setUsersSearch] = useState([]);
+  const [batches, setBatches] = useState([]);
+  const [batchesSearch, setBatchesSearch] = useState([]);
+  const [courses, setCourse] = useState([]);
+  const [makeClassroom, setMakeClassRoom] = useState(true);
+  const [makeEvent, setMakeEvent] = useState(true);
 
-  const nameRef = React.createRef();
+  const courseRef = React.createRef();
   const token = getCookie("token");
   const [isAutoPass, setIsAutoPass] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
@@ -54,41 +62,32 @@ const StudentManagement = () => {
   const [values, setValues] = useState({
     error: "",
     success: "",
-    name: "",
     formData: "",
-    email: "",
-    password: "",
-    phone: "",
-    role: "",
-    extra: "",
+    course: "",
+    startdate: "",
+    batchname: "",
+    displayweb: false,
     lockSubmit: false,
   });
   const {
     error,
-    success,
     formData,
-    role,
-    phone,
-    password,
-    email,
-    extra,
-    company,
+    startdate,
+    batchname,
+    displayweb,
+    classroom,
+    calender,
+    courseId,
     lockSubmit,
   } = values;
   useEffect(() => {
     setValues({ ...values, formData: new FormData() });
-
-    getAllUsers();
+    getAllBatches().then(() => getCourses());
   }, []);
 
   const handleChange = (name) => (e) => {
     console.log(name);
-    const value =
-      name == "password"
-        ? isAutoPass
-          ? generatePass()
-          : e.target.value
-        : e.target.value;
+    const value = e.target.value;
 
     formData.set(name, value);
 
@@ -109,25 +108,25 @@ const StudentManagement = () => {
       setIsSearching(false);
     } else {
       let temp = [];
-      users.forEach((user) => {
+      batches.forEach((user) => {
         if (user.name.includes(enteredUser)) {
           temp.push(user);
         }
       });
 
       console.log(temp);
-      setUsersSearch(temp);
+      setBatchesSearch(temp);
       setIsSearching(true);
     }
   };
 
-  const getAllUsers = async () => {
-    await getUsers(authCtx.user).then((data) => {
-      setUsers(data);
+  const getAllBatches = async () => {
+    await getBatches(authCtx.user).then((data) => {
+      setBatches(data);
     });
   };
   const searchCards = () => {
-    return usersSearch.map((user) => {
+    return batchesSearch.map((user) => {
       return (
         <GridItem colSpan={2}>
           <UserCard user={user} />
@@ -136,7 +135,7 @@ const StudentManagement = () => {
     });
   };
   const userCards = () => {
-    return users.map((user) => {
+    return batches.map((user) => {
       return (
         <GridItem colSpan={2}>
           <UserCard user={user} />
@@ -144,96 +143,137 @@ const StudentManagement = () => {
       );
     });
   };
+  const generateBatchName = () => {
+    const tempCourse = courses.find((cou) => cou._id == courseId);
 
+    console.log(tempCourse.shortName);
+    const strDate = new Date(startdate).toDateString();
+    const batchName = `${tempCourse.shortName} ${strDate}`;
+    console.log(batchName);
+    formData.set("batchname", batchName);
+
+    setValues({ ...values, formData: formData, batchname: batchName });
+  };
   const handleSubmit = (e) => {
     e.preventDefault();
     setValues({ ...values, lockSubmit: true });
-    if (isAutoPass) {
-      formData.set("password", generatePass());
-      setValues({
-        ...values,
-        formData: formData,
-      });
-    }
-    createUser(formData, token, authCtx.user).then((data) => {
-      if (data?.error) {
-        console.log(data.error);
-        setValues({ ...values, lockSubmit: true });
-      } else {
-        setValues({
-          ...values,
-          error: "",
-          success: `A new user was created`,
-          formData: "",
-          email: "",
-          password: "",
-          phone: "",
-          comapany: "",
-          role: "",
-          extra: "",
-          lockSubmit: false,
-        });
-      }
+    // if (isAutoPass) {
+    //   generateBatchName();
+    // }
+    createCalenderEvent();
+    // createBatch(formData, token, authCtx.user).then((data) => {
+    //   if (data?.error) {
+    //     console.log(data.error);
+    //     setValues({ ...values, lockSubmit: false });
+    //   } else {
+    //     setValues({
+    //       ...values,
+    //       error: "",
+    //       success: `A new user was created`,
+    //       formData: "",
+    //       courseId: "",
+    //       startdate: "",
+    //       batchname: "",
+    //       event: "",
+    //       classroom: true,
+    //       calender: true,
+    //       displayweb: false,
+    //       lockSubmit: false,
+    //     });
+    //   }
+    // });
+  };
+
+  const createClassroom = () => {};
+
+  const createCalenderEvent = async () => {
+    const event = {
+      summary: batchname,
+      location: "",
+      description: "",
+      start: {
+        dateTime: "2015-05-28T09:00:00-07:00",
+        timeZone: "America/Los_Angeles",
+      },
+      end: {
+        dateTime: "2015-05-28T17:00:00-07:00",
+        timeZone: "America/Los_Angeles",
+      },
+      recurrence: ["RRULE:FREQ=DAILY;COUNT=2"],
+      attendees: [{ email: "dinuga@gmail.com" }],
+      reminders: {
+        useDefault: false,
+        overrides: [
+          { method: "email", minutes: 24 * 60 },
+          { method: "popup", minutes: 10 },
+        ],
+      },
+    };
+    await createCalender(event, authCtx.googleToken).then((data) => {
+      console.log(data?.message);
     });
   };
 
-  const generatePass = () => {
-    var length = 8,
-      charset =
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-      retVal = "";
-    for (var i = 0, n = charset.length; i < length; ++i) {
-      retVal += charset.charAt(Math.floor(Math.random() * n));
-    }
-    console.log(retVal);
-    return retVal;
+  const getCourses = () => {
+    listCourseCards().then((courses) => {
+      setCourse(courses);
+    });
   };
+
+  const generateCourseList = () => {
+    return courses.map((course) => {
+      return <option value={course._id}>{course.title}</option>;
+    });
+  };
+
   return (
     <VStack>
       <Drawer
         isOpen={isOpen}
         placement="right"
         size={"md"}
-        initialFocusRef={nameRef}
+        initialFocusRef={courseRef}
         onClose={onClose}
       >
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
           <DrawerHeader borderBottomWidth="1px">
-            Create a new account
+            Create a new batch
           </DrawerHeader>
 
           <DrawerBody>
             <Stack spacing="24px">
               <Box>
-                <FormLabel htmlFor="fullname">Full Name</FormLabel>
-                <Input
-                  onChange={handleChange("name")}
-                  ref={nameRef}
-                  id="fullname"
-                  placeholder="Please enter full name"
-                />
+                <Select
+                  ref={courseRef}
+                  variant="filled"
+                  onChange={handleChange("course")}
+                  placeholder="Select Course"
+                >
+                  {generateCourseList()}
+                </Select>
               </Box>
 
               <Box>
-                <FormLabel htmlFor="email">Email</FormLabel>
+                <FormLabel htmlFor="startdate">Event Start Date</FormLabel>
                 <Input
-                  onChange={handleChange("email")}
-                  id="email"
-                  placeholder="Please enter email"
+                  onChange={handleChange("startdate")}
+                  id="startdate"
+                  type="date"
+                  placeholder="Please enter start date"
                 />
               </Box>
               <Box>
                 <HStack align="center">
                   <Box>
-                    <FormLabel htmlFor="password">Password</FormLabel>
+                    <FormLabel htmlFor="batchname">Batch Name</FormLabel>
                     <Input
-                      onChange={handleChange("password")}
-                      id="password"
-                      type="password"
-                      disabled={isAutoPass}
-                      placeholder="Password"
+                      onChange={handleChange("batchname")}
+                      value={batchname != "" ? batchname : ""}
+                      isDisabled={isAutoPass}
+                      id="batchname"
+                      placeholder="Please enter batch name"
                     />
                   </Box>
                   <Spacer />
@@ -260,46 +300,49 @@ const StudentManagement = () => {
                 </HStack>
               </Box>
 
-              <Box>
+              {/* <Box>
                 <FormLabel htmlFor="company">Company Name</FormLabel>
                 <Input
                   onChange={handleChange("company")}
                   id="company"
                   placeholder="Please enter company name"
                 />
-              </Box>
-
-              <Box>
-                <FormLabel htmlFor="phone">Phone Number</FormLabel>
-                <InputGroup>
-                  <InputLeftAddon children="+94" />
-                  <Input
-                    type="tel"
-                    placeholder="phone number"
-                    onChange={handleChange("phone")}
-                  />
-                </InputGroup>
-              </Box>
-
-              <Box>
-                <FormLabel htmlFor="owner">Select Role</FormLabel>
-                <Select
-                  id="owner"
-                  onChange={handleChange("role")}
-                  defaultValue={role}
-                >
-                  <option value={0}>Student</option>
-                  <option value={2}>Trainer</option>
-                </Select>
-              </Box>
+              </Box> */}
 
               <Box>
                 <FormLabel htmlFor="desc">Extra Details</FormLabel>
                 <Textarea
                   onChange={handleChange("extra")}
                   id="desc"
-                  placeholder="Extra phone numbers, emails, addresses ect.. can be entered here"
+                  placeholder="Other dates and course information can be entered here"
                 />
+              </Box>
+              <Box>
+                <Checkbox
+                  isChecked={makeClassroom}
+                  onChange={(value) => {
+                    setMakeClassRoom(!makeClassroom);
+                  }}
+                  colorScheme="purple"
+                >
+                  Google Classroom
+                </Checkbox>
+              </Box>
+              <Box>
+                <Checkbox
+                  isChecked={makeEvent}
+                  onChange={() => {
+                    setMakeEvent(!makeEvent);
+                  }}
+                  colorScheme="purple"
+                >
+                  Create Google Calender
+                </Checkbox>
+              </Box>
+              <Box>
+                <Checkbox colorScheme="red">
+                  display in pms.lk website schedule
+                </Checkbox>
               </Box>
               <Text color={"red.500"}>{error}</Text>
             </Stack>
@@ -314,7 +357,7 @@ const StudentManagement = () => {
               onClick={handleSubmit}
               colorScheme="blue"
             >
-              {!false ? "Create User" : "Please Wait"}
+              {!false ? "Create Batch" : "Please Wait"}
             </Button>
           </DrawerFooter>
         </DrawerContent>
@@ -345,4 +388,4 @@ const StudentManagement = () => {
   );
 };
 
-export default StudentManagement;
+export default BatchManagement;
